@@ -3,40 +3,48 @@
 
 <PageTitle>Weather App</PageTitle>
 
-<MudCard width="500px" Class="align-center">
+<MudCard width="500px" Class="align-center mx-auto pa-8">
     <!-- #Search bar  -->
     <MudCardHeader Class="align-self-stretch">
-        <MudTextField @bind-Value="SearchValue" Label="Search for city" Clearable="true" Immediate="true"
+        <MudTextField @bind-Value="SearchString" Label="Search for city" Placeholder="Oslo" Clearable="true" Immediate="true"
             Variant="Variant.Text" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search">
         </MudTextField>
-
     </MudCardHeader>
 
     <MudCardContent>
-        <MudImage Src="/Images/clear.png" ObjectPosition="ObjectPosition.Center" Width="200" Height="200" Class="mb-4">
+        <MudImage Src="/Images/clear.png" ObjectPosition="ObjectPosition.Center" Width="200" Height="200" Class="mb-6">
         </MudImage>
         <MudText Typo="Typo.h3" Class="d-flex justify-center mb-2"> @Temperature °C </MudText>
-        <MudText Typo="Typo.h6" Class="d-flex justify-center"> @WeatherDescription[0] </MudText>
+        <MudText Typo="Typo.h6" Class="d-flex justify-center mb-6"> @WeatherDescription[0] </MudText>
     </MudCardContent>
 
     <MudGrid Justify="Justify.Center">
-        <MudItem>
-            <div>
-                <MudIcon Color="Color.Primary" Icon="@Icons.Material.Filled.Opacity" Size="Size.Large" />
+        <MudItem Class="d-flex flex-row gap-2">
+            <MudIcon Class="mt-1" Color="Color.Primary" Icon="@Icons.Material.Filled.Opacity" Size="Size.Large"/>    
+            <div Class="d-flex flex-column mr-3">
                 <MudText>@Humidity %</MudText>
                 <MudText>Humidity</MudText>
             </div>
         </MudItem>
-        <MudItem>
-            <MudIcon Color="Color.Primary" Icon="@Icons.Material.Filled.Air" Size="Size.Large" />
-            <MudText>@WindSpeed km/h</MudText>
-            <MudText>Wind speed</MudText>
+        <MudItem Class="d-flex flex-row gap-2">
+            <MudIcon Class="mt-1" Color="Color.Primary" Icon="@Icons.Material.Filled.Air" Size="Size.Large"/>
+            <div Class="d-flex flex-column">
+                <MudText>@WindSpeed km/h</MudText>
+                <MudText>Wind speed</MudText>
+            </div>
         </MudItem>
     </MudGrid>
 </MudCard>
 
 @code {
-    public string SearchValue { get; set; } = string.Empty;
+    // API key and search string for the weather app
+    // curl -X GET --user e69c2da2-ab60-42b7-98d1-49f406d0bf06: 'https://frost.met.no/observations/v0.jsonld?sources=sn18700&referencetime=2010-01-01T12&elements=air_temperature'
+
+    // compact
+    // curl -X GET --user e69c2da2-ab60-42b7-98d1-49f406d0bf06: 'https://api.met.no/weatherapi/locationforecast/2.0/compact?lat=60.10&lon=9.58'  
+    
+    
+    public string SearchString { get; set; } = string.Empty;
 
     private int Temperature { get; set; } = 15;
     private string[] WeatherDescription { get; set; } = { "Clear", "Windy", "Snowy", "Cloudy", "Rainy" };

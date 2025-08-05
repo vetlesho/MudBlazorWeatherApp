@@ -36,3 +36,7 @@ project.assets.json
 # OS junk
 .DS_Store
 Thumbs.db
+
+# .env files
+.env
+
