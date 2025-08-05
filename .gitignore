@@ -1,0 +1,38 @@
+# Rider / IntelliJ
+.idea/
+*.sln.iml
+
+# Build outputs
+bin/
+obj/
+artifacts/
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# ASP.NET Secrets
+# Can be removed if no secrets
+appsettings.Development.json  
+
+# VS Code and Rider configs
+.vscode/
+.vs/
+
+# NuGet
+*.nupkg
+*.snupkg
+packages/
+project.lock.json
+project.assets.json
+
+# Logs and temp
+*.log
+*.tmp
+*.cache
+
+# OS junk
+.DS_Store
+Thumbs.db
