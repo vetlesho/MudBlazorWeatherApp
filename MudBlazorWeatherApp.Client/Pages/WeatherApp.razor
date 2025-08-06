@@ -1,55 +1,170 @@
 ﻿@page "/"
 @page "/weatherApp"
+@using MudBlazorWeatherApp.Client.Services
+@using MudBlazorWeatherApp.Client.Models
+@inject ClientWeatherService WeatherService 
 
 <PageTitle>Weather App</PageTitle>
 
-<MudCard width="500px" Class="align-center mx-auto pa-8">
+<MudCard width="550px" Class="align-center mx-auto pa-8">
     <!-- #Search bar  -->
     <MudCardHeader Class="align-self-stretch">
-        <MudTextField @bind-Value="SearchString" Label="Search for city" Placeholder="Oslo" Clearable="true" Immediate="true"
-            Variant="Variant.Text" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search">
+        <MudTextField @bind-Value="SearchString" Label="Search for city" Placeholder="Oslo" 
+                      Clearable="true" Immediate="false" Variant="Variant.Text" 
+                      Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search">
         </MudTextField>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="ml-2 mt-2" OnClick="SearchWeather">Search</MudButton>
     </MudCardHeader>
 
     <MudCardContent>
-        <MudImage Src="/Images/clear.png" ObjectPosition="ObjectPosition.Center" Width="200" Height="200" Class="mb-6">
-        </MudImage>
-        <MudText Typo="Typo.h3" Class="d-flex justify-center mb-2"> @Temperature °C </MudText>
-        <MudText Typo="Typo.h6" Class="d-flex justify-center mb-6"> @WeatherDescription[0] </MudText>
+        @if (IsLoading)
+        {
+            <MudProgressCircular Indeterminate="true"></MudProgressCircular>
+            <MudText>Loading weather data...</MudText>
+        }
+        else if (IsCityNotFound)
+        {
+            <MudImage Src="/Images/404.png" ObjectPosition="ObjectPosition.Center" Width="200" Height="200" Class="mb-6">
+            </MudImage>
+            <MudText Typo="Typo.h6" Class="d-flex justify-center mb-6">City "@SearchString" not found</MudText>
+        }
+        else if (CurrentWeather != null)
+        {
+           <MudImage Src="@GetWeatherImage()" ObjectPosition="ObjectPosition.Center" Width="200" Height="200" Class="mb-6">
+           </MudImage>
+           <MudText Typo="Typo.h3" Class="d-flex justify-center mb-2"> @Temperature °C </MudText>
+           <MudText Typo="Typo.h6" Class="d-flex justify-center mb-6"> @WeatherDescription </MudText>  
+        }
+        else
+        {
+            <MudText>Enter a city name to get weather data</MudText>
+        }
     </MudCardContent>
 
-    <MudGrid Justify="Justify.Center">
-        <MudItem Class="d-flex flex-row gap-2">
-            <MudIcon Class="mt-1" Color="Color.Primary" Icon="@Icons.Material.Filled.Opacity" Size="Size.Large"/>    
-            <div Class="d-flex flex-column mr-3">
-                <MudText>@Humidity %</MudText>
-                <MudText>Humidity</MudText>
-            </div>
-        </MudItem>
-        <MudItem Class="d-flex flex-row gap-2">
-            <MudIcon Class="mt-1" Color="Color.Primary" Icon="@Icons.Material.Filled.Air" Size="Size.Large"/>
-            <div Class="d-flex flex-column">
-                <MudText>@WindSpeed km/h</MudText>
-                <MudText>Wind speed</MudText>
-            </div>
-        </MudItem>
-    </MudGrid>
+    @if (CurrentWeather != null)
+    {
+        <MudGrid Justify="Justify.Center">
+            <MudItem Class="d-flex flex-row gap-2">
+                <MudIcon Class="mt-1" Color="Color.Primary" Icon="@Icons.Material.Filled.Water" Size="Size.Large"/>    
+                <div Class="d-flex flex-column mr-2">
+                    <MudText>Humidity</MudText>
+                    <MudText>@Humidity %</MudText>
+                </div>
+            </MudItem>
+            <MudItem Class="d-flex flex-row gap-2">
+                <MudIcon Class="mt-1" Color="Color.Primary" Icon="@Icons.Material.Filled.Air" Size="Size.Large"/>
+                <div Class="d-flex flex-column mr-2">
+                    <MudText>Wind speed</MudText>
+                    <MudText>@WindSpeed km/h</MudText>
+                </div>
+            </MudItem>
+            <MudItem Class="d-flex flex-row gap-2">
+                <MudIcon Class="mt-1" Color="Color.Primary" Icon="@Icons.Material.Filled.WaterDrop" Size="Size.Large"/>
+                <div Class="d-flex flex-column">
+                    <MudText>Precipitation</MudText>
+                    <MudText>@PrecipitationAmount mm</MudText>
+                </div>
+            </MudItem>
+        </MudGrid>
+    }
+    
 </MudCard>
 
 @code {
-    // API key and search string for the weather app
-    // curl -X GET --user e69c2da2-ab60-42b7-98d1-49f406d0bf06: 'https://frost.met.no/observations/v0.jsonld?sources=sn18700&referencetime=2010-01-01T12&elements=air_temperature'
-
-    // compact
-    // curl -X GET --user e69c2da2-ab60-42b7-98d1-49f406d0bf06: 'https://api.met.no/weatherapi/locationforecast/2.0/compact?lat=60.10&lon=9.58'  
-    
-    
     public string SearchString { get; set; } = string.Empty;
+    private bool IsLoading { get; set; }
+    private bool IsCityNotFound { get; set; }
+    
+    private WeatherResponse? CurrentWeather { get; set; }
 
-    private int Temperature { get; set; } = 15;
-    private string[] WeatherDescription { get; set; } = { "Clear", "Windy", "Snowy", "Cloudy", "Rainy" };
-    private int Humidity { get; set; } = 95;
-    private double WindSpeed { get; set; } = 3.3;
+    private int Temperature => CurrentWeather?.Properties.TimeSeries.FirstOrDefault()?.Data.Instant.Details.AirTemperature is double temp 
+        ? (int)Math.Round(temp) : 0;
+    
+    private int Humidity => CurrentWeather?.Properties.TimeSeries.FirstOrDefault()?.Data.Instant.Details.RelativeHumidity is double humidity 
+        ? (int)Math.Round(humidity) : 0;
+
+    private double PrecipitationAmount => CurrentWeather?.Properties.TimeSeries.FirstOrDefault()?.Data.Instant.Details.PrecipitationAmount ?? 0;
+    
+    private double WindSpeed => CurrentWeather?.Properties.TimeSeries.FirstOrDefault()?.Data.Instant.Details.WindSpeed ?? 0;
+    
+    private string WeatherDescription => GetWeatherDescription();
+
+    private async Task SearchWeather()
+    {
+        Console.WriteLine($"Searching for: '{SearchString}'");
+        if (string.IsNullOrWhiteSpace(SearchString))
+        {
+            Console.WriteLine("Search string is empty");
+            return;
+        }
+
+        IsLoading = true;
+        IsCityNotFound = false;
+        
+        StateHasChanged();
+
+        CurrentWeather = await WeatherService.GetWeatherByCityAsync(SearchString);
+
+        if (CurrentWeather == null)
+        {
+            IsCityNotFound = true;
+        }
+        IsLoading = false;
+        StateHasChanged();
+    }
+
+    private string GetWeatherDescription()
+    {
+        var details = CurrentWeather?.Properties.TimeSeries.FirstOrDefault()?.Data.Instant.Details;
+        if (details == null)
+            return "Unknown";
+    
+        var precipitation = details.PrecipitationAmount;
+        var temperature = details.AirTemperature;
+        var cloudCover = details.CloudAreaFraction;
+        Console.WriteLine($"Cloud cover value: {cloudCover}");
+
+        var cloudDesc = "";
+        if (cloudCover < 25)
+            cloudDesc = "Clear";
+        else if (cloudCover < 50)
+            cloudDesc = "Partly cloudy";
+        else if (cloudCover < 75)
+            cloudDesc = "Cloudy";
+        else
+            cloudDesc = "Overcast";
+
+        if (precipitation > 0.1)
+        {
+            var precipDesc = temperature <= 0 ? "snowy" : "rainy";
+            return $"{cloudDesc} and {precipDesc}";
+        }
+        
+        return cloudDesc;
+    }
+
+    private string GetWeatherImage()
+    {
+        var details = CurrentWeather?.Properties.TimeSeries.FirstOrDefault()?.Data.Instant.Details;
+        if (details == null)
+        {
+            return "/Images/404.png";
+        }
+        
+        var precipitation = details.PrecipitationAmount;
+        var temperature = details.AirTemperature;
+        var cloudCover = details.CloudAreaFraction;
+
+        if (precipitation > 0.1)
+        {
+            return temperature <= 0 ? "/Images/snow.png" : "/Images/rain.png"; 
+        }
+        
+        if (cloudCover < 25)
+            return "/Images/clear.png";
+        else if (cloudCover < 75)
+            return "/Images/cloud.png";
+        else
+            return "/Images/overcast.png";
+    }
 }
-
-           
