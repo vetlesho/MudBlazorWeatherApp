@@ -15,7 +15,7 @@ A simple weather web application built with Blazor WebAssembly and MudBlazor. It
 
 ### Clone the Repository
 ```bash
-git clone https://github.com/yourusername/MudBlazorWeatherApp.git
+git clone https://github.com/vetlesho/MudBlazorWeatherApp.git
 cd MudBlazorWeatherApp
 ```
 
