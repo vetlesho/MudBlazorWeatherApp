@@ -2,6 +2,12 @@
 
 A simple weather web application built with Blazor WebAssembly and MudBlazor. It fetches weather data from the Norwegian Meteorological Institute (MET) API and displays it in a modern UI.
 
+## Screenshots
+
+| Search                   | Sydney                            | Oslo                                 |
+|--------------------------------|-----------------------------------|--------------------------------------|
+| ![Main](doneImages/ferdig2.png) | ![Result](doneImages/ferdig3.png) | ![Not found](doneImages/ferdig1.png) |
+
 ## Features
 - Search for weather by city name (limited to a set of hardcoded cities)
 - Displays temperature, humidity, wind speed, precipitation, and weather icons
